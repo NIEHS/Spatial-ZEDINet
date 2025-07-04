@@ -1,2 +1,2 @@
-# Spatial-ZEDINet
+# Spatial-ZEDNet
 Spatial-ZEDNet
