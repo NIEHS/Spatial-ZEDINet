@@ -89,6 +89,11 @@ plotTree(mst,AuxResult$treeEffect_actv[,antibody],
 
 ```{R}
 ### Plot effect on image
+
+Centers = data.frame(meshid_id = 1:vcount(mst), AuxResult$treeEffect_cont)
+Metadata =AuxResult$Metadata
+Metadata = left_join(Metadata,Centers,by= "meshid_id")
+
 mn = min(Metadata[,antibody])
 ma = max(Metadata[,antibody])
 
