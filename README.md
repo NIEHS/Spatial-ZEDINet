@@ -21,6 +21,19 @@ AuxResult =  SpatialDENet(all_data = SeuratObj@assays$RNA$data,
 ```
 
 Plots 
+```{R}
+# Plot cell types on the network
+
+Metadata$cellType =  as.numeric(as.factor(as.character(Metadata$Tier1 )))
+Pl = Metadata %>%group_by(meshid_id) %>%summarise(celltype=round(mean(cellType)))
+Pl$celltype_lab = factor(Pl$celltype,levels = 1:4,labels = c("Endothelial","Epithelial","Fibroblast","Immune"))
+
+plotTree(mst,Pl$celltype_lab,cols = c25[8:12],Lab = F,
+         edge_alpha = .01,vertex.size =AuxResult$Res$nn,
+         legend.size = 3)
+```
+
+![image](https://github.com/user-attachments/assets/b3de9ba1-8ca5-4537-8c4e-3b4128e37d7b)
 
 ```{R}
 adj_pvalue = AuxResult$adj_pvalue_BY[1,]
