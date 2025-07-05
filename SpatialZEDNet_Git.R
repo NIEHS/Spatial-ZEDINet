@@ -15,6 +15,7 @@ library(ggraph)
 library(ar.matrix)
 library(umap)
 library(progress)
+library(viridis)
 
 SpatialDENet <- function(all_data,
                          metadata,
