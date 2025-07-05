@@ -19,3 +19,31 @@ AuxResult =  SpatialDENet(all_data = SeuratObj@assays$RNA$data,
                           countmodel = "lognormal", # nbinomial for count,
                           CollectPostD = TRUE)
 ```
+
+Plots 
+
+```{R}
+adj_pvalue = AuxResult$adj_pvalue_BY[1,]
+nam = names(sort(adj_pvalue[adj_pvalue <0.01],decreasing = F))
+mst = AuxResult$mst
+
+##### Network effect Count
+antibody= "Lag3"
+plotTree(mst,AuxResult$treeEffect_cont[,antibody],
+         edge_alpha = .01,
+         Lab = F,
+         vertex.size =AuxResult$Res$nn,
+         main=antibody)
+```
+![image](https://github.com/user-attachments/assets/606f622d-259c-47ae-9f66-f004650feaac)
+```{R}
+##### Network effect Activation
+plotTree(mst,AuxResult$treeEffect_actv[,antibody],
+         edge_alpha = .01,
+         Lab = F,
+         vertex.size =AuxResult$Res$nn,
+         main= antibody)
+
+```
+![image](https://github.com/user-attachments/assets/c047ae6b-9f98-4ac4-911b-404067e32d92)
+
