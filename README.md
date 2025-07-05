@@ -23,8 +23,11 @@ AuxResult =  SpatialDENet(all_data = SeuratObj@assays$RNA$data,
                           Sample_id = "Sample_id",
                           countmodel = "lognormal", # nbinomial for count,
                           CollectPostD = TRUE)
+names(AuxResult)
+AuxResult$adj_pvalue_BY
 ```
-
+![image](https://github.com/user-attachments/assets/0d442a44-9a11-4fc6-be4d-42e3ee6947ff)
+![image](https://github.com/user-attachments/assets/2c365625-cc78-47ea-85e6-2c8038c05ba8)
 ## Plots 
 ```{R}
 # Plot cell types on the network
@@ -40,6 +43,7 @@ plotTree(mst,Pl$celltype_lab,cols = c25[8:12],Lab = F,
 ```
 
 ![image](https://github.com/user-attachments/assets/b3de9ba1-8ca5-4537-8c4e-3b4128e37d7b)
+
 
 
 ```{R}
