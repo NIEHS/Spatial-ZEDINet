@@ -135,3 +135,41 @@ pheatmap::pheatmap(M,
 ```
 ![image](https://github.com/user-attachments/assets/ae29a13b-f3fa-43ca-958d-fdd8513cd0af)
 
+```{R}
+####### Plot effect on matrix 
+M = Metadata[,c("Sample_type",nam_Dnet_nam[(nam_Dnet_nam%in%colnames(Metadata))])]
+M = M %>%filter(Sample_type=="Healthy") %>%dplyr::select(-Sample_type)
+M1 = unique(M)
+
+M = Metadata[,c("Sample_type",nam_Dnet_nam[(nam_Dnet_nam%in%colnames(Metadata))])]
+M = M %>%filter(Sample_type=="DSS9") %>%dplyr::select(-Sample_type)
+M2 = M%>%unique()
+
+# Cluster M1 and M2 separately
+hc_M1 <- hclust(dist(M1))
+hc_M2 <- hclust(dist(M2))
+M1_clustered <- M1[hc_M1$order, ]
+M2_clustered <- M2[hc_M2$order, ]
+combined_mat <- rbind(M1_clustered, M2_clustered)
+
+# Row annotation
+annotation_row <- data.frame(Source = c(rep("Day 0", nrow(M1)), rep("Day 9", nrow(M2))))
+rownames(annotation_row) <- rownames(combined_mat)
+purple_yellow_palette <- colorRampPalette(c("#762A83", "#FFFFFF", "#d95f02"))(100)
+ann_colors <- list(Source = c(`Day 0` = "#1b9e77", `Day 9` = "#FFDC00")) 
+# Heatmap
+pheatmap(combined_mat,
+         annotation_row = annotation_row,
+         annotation_colors = ann_colors,
+         cluster_rows = FALSE,
+         cluster_cols = TRUE,
+         show_rownames = FALSE,
+         scale = "row",
+         color = purple_yellow_palette,
+         fontsize = 5,
+         treeheight_col = 0
+)
+```
+
+![image](https://github.com/user-attachments/assets/2e5a87f1-7a9f-4ebd-84ed-52096a88f5de)
+
