@@ -41,6 +41,27 @@ plotTree(mst,Pl$celltype_lab,cols = c25[8:12],Lab = F,
 
 ![image](https://github.com/user-attachments/assets/b3de9ba1-8ca5-4537-8c4e-3b4128e37d7b)
 
+
+```{R}
+#### Disease and health
+
+Mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+
+Pl = Metadata %>%group_by(meshid_id) %>%summarise(type=Mode(Sample_type))
+
+
+plotTree(mst,Pl$type,cols = c25[3:4],Lab = F,
+         edge_alpha = .01,vertex.size =AuxResult$Res$nn,
+         legend.size = 3)
+```
+
+![image](https://github.com/user-attachments/assets/150ab57e-bc95-47b4-9624-ce5d6b0c477a)
+
+
 ```{R}
 adj_pvalue = AuxResult$adj_pvalue_BY[1,]
 nam = names(sort(adj_pvalue[adj_pvalue <0.01],decreasing = F))
@@ -66,3 +87,23 @@ plotTree(mst,AuxResult$treeEffect_actv[,antibody],
 ```
 ![image](https://github.com/user-attachments/assets/c047ae6b-9f98-4ac4-911b-404067e32d92)
 
+```{R}
+### Plot effect on image
+mn = min(Metadata[,antibody])
+ma = max(Metadata[,antibody])
+
+Pl = Metadata %>% filter(Slice_ID =="062921_D0_m3a_2_slice_3")
+
+p1 = plotScatter(Pl$x,Pl$y,Pl[,antibody],main = paste0("Day 0: ",antibody), ManualColor = F,cols = c25[8:12],
+            legend.size = 3,limits = c(mn,ma))
+
+
+Pl = Metadata %>% filter(Slice_ID =="062221_D9_m3_2_slice_3")
+
+p2= plotScatter(Pl$x,Pl$y,Pl[,antibody],main = paste0("Day 9: ",antibody),ManualColor = F,cols = c25[8:12],
+            legend.size = 3,limits = c(mn,ma))
+
+p1|p2
+```
+
+![image](https://github.com/user-attachments/assets/b643659b-4c67-430c-91e4-3fb7cb018a28)
