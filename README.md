@@ -6,6 +6,11 @@ Differential expression analysis in spatially resolved single-cell data enables 
 # Load data
 library(Seurat)
 SeuratObj = readRDS("SampleData.rds")
+
+# Get utility function
+
+source("https://raw.githubusercontent.com/NIEHS/Spatial-ZEDINet/main/SpatialZEDNet_Git.R")
+
 # Find differential and activated Genes
 
 AuxResult =  SpatialDENet(all_data = SeuratObj@assays$RNA$data,
