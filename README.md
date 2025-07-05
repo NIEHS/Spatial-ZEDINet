@@ -114,3 +114,24 @@ p1|p2
 ```
 
 ![image](https://github.com/user-attachments/assets/b643659b-4c67-430c-91e4-3fb7cb018a28)
+
+```{R}
+# Plot Corregulation matrix
+nam_Dnet_nam = nam
+
+M = Metadata[,c("Sample_type",nam_Dnet_nam[(nam_Dnet_nam%in%colnames(Metadata))])]
+M = M %>%filter(Sample_type=="DSS9") %>%dplyr::select(-Sample_type)
+M = unique(M) %>%cor
+
+pheatmap::pheatmap(M, 
+                   treeheight_row = 0,
+                   treeheight_col = 0,
+                   fontsize = 4.5,
+                   angle_col = 90,
+                   cluster_rows = T,
+                   cluster_cols = T,
+                   #breaks = breaks,
+                   color = inferno(49))
+```
+![image](https://github.com/user-attachments/assets/ae29a13b-f3fa-43ca-958d-fdd8513cd0af)
+
