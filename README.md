@@ -31,6 +31,7 @@ source("https://raw.githubusercontent.com/NIEHS/Spatial-ZEDINet/main/SpatialZEDN
 AuxResult =  SpatialDENet(all_data = SeuratObj@assays$RNA$data,
                           metadata = SeuratObj@meta.data, # Must contain "Group" column
                           Sample_id = "Sample_id",
+                          joint = TRUE,
                           countmodel = "lognormal", # nbinomial for count,
                           CollectPostD = TRUE)
 AuxResult$adj_pvalue_BY
