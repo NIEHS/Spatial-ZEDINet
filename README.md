@@ -4,7 +4,21 @@ Differential expression analysis in spatially resolved single-cell data enables 
 ![image](https://github.com/user-attachments/assets/36cb2e1b-41ed-4426-ba43-c85d3b8212d4)
 
 # Demo analysis
-
+```{R}
+# Required Packages
+library(INLA) # For Imputation
+library(gamlss.spatial) # For SNR
+library(tidyverse) # Data manipulation
+library(igraph)
+library(doParallel)
+library(scales)
+library(genie)
+library(ggraph)
+library(ar.matrix)
+library(umap)
+library(progress)
+library(viridis)
+```
 ## Find differential and activated genes
 
 ```{R}
