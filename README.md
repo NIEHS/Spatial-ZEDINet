@@ -7,15 +7,11 @@ Differential expression analysis in spatially resolved single-cell data enables 
 ```{R}
 # Required Packages
 library(INLA) # For Imputation
-library(gamlss.spatial) # For SNR
 library(tidyverse) # Data manipulation
 library(igraph)
-library(doParallel)
 library(scales)
 library(genie)
 library(ggraph)
-library(ar.matrix)
-library(umap)
 library(progress)
 library(viridis)
 ```
