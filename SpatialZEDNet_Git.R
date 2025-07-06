@@ -20,15 +20,14 @@ library(viridis)
 SpatialDENet <- function(all_data,
                          metadata,
                          Sample_id = "Sample_id",
+                         joint=TRUE,
                          countmodel = "nbinomial",
                          CollectPostD = FALSE,
                          offset = c(1, 1),
                          max.edge = c(.7, .7),
                          cutoff =1){
   
-  source("https://raw.githubusercontent.com/NIEHS/Spatial-ZEDINet/main/SpatialZEDNet_Git.R")
-  library(INLA)
-  library(sf)
+ 
   n_genes = nrow(all_data)
   un =  unique(metadata[,Sample_id])
   Metadata_sub = NULL
@@ -123,6 +122,7 @@ SpatialDENet <- function(all_data,
   
   for (j in 1:n_genes) {
     pb$tick()
+    if(joint){
     y1 = ifelse(all_data[j,]>0,all_data[j,],NA)
     y2 = ifelse(all_data[j,]==0,0,1)
     n = length(y1)
@@ -175,6 +175,58 @@ SpatialDENet <- function(all_data,
       )
       
     }, silent = TRUE) 
+    
+    }else{
+      
+      
+      y1 =  all_data[j,]
+      y2 = ifelse(all_data[j,]==0,0,1)
+      n = length(y1)
+      # Response list: each element of the list is a vector of length n * 2 (for 2 likelihoods)
+      if(countmodel=="binomial"){
+        y <- y2
+      }else{
+        y <- y1+0.0001
+      }
+   
+      # Data frame for covariates or index variables
+      data <- data.frame(
+        idx =  Metadata_sub$idx1,
+        tcont = Metadata_sub$Group
+      )
+      data$tcont = as.factor(data$tcont)
+      
+      n_total <- nrow(Q_sparse)  # total length of the latent field
+      
+      # Create constraint matrix (each row is a constraint)
+      
+      A_constr <- Matrix(0, nrow = 1, ncol =  1*n_total, sparse = TRUE)
+      A_constr[1,1:n_total] =1
+      
+      # Right-hand side of constraints (all zero)
+      e_constr <- c(0)
+    
+      
+      aux_result <- try({
+        
+        res2 <- suppressWarnings(
+          inla(
+            y ~ 1+tcont + f(idx, model = "generic0", Cmatrix = bdiag(Q_sparse),
+                                  extraconstr = list(A = A_constr, e = e_constr)),
+            data = data,
+            family = c(countmodel),
+            control.predictor = list(compute = TRUE,link = 1,link = 1),verbose = F,
+            silent = TRUE,
+            control.inla = list(control.vb = list(emergency = 500)),
+            control.compute = list(dic = TRUE, waic = TRUE)
+          )
+        )
+        
+      }, silent = TRUE) 
+      
+      
+ 
+    }
     
     if (class(aux_result)=="try-error") {
       message(paste("Error at iteration","gene",j))
