@@ -8,6 +8,7 @@ SpatialDENet <- function(all_data,
                          metadata,
                          Sample_id = "Sample_id",
                          joint=TRUE,
+                         separate=F,
                          countmodel = "nbinomial",
                          interface="INLA",
                          CollectPostD = FALSE,
@@ -107,13 +108,24 @@ SpatialDENet <- function(all_data,
         )
         
         # Data frame for covariates or index variables
-        data <- data.frame(
-          idx = c(Metadata_sub$idx1,Metadata_sub$idx1),#+max(Metadata_sub$idx1)),
-          idx_actv = c(Metadata_sub$idx1,Metadata_sub$idx1),
-          tcont = c(Metadata_sub$Group,Metadata_sub$Group),#,
-          #x = factor(Metadata_sub[,Sample_id]),
-          tactv = c(rep(NA, n),Metadata_sub$Group)
-        )
+        if(separate){
+          data <- data.frame(
+            idx = c(Metadata_sub$idx1,Metadata_sub$idx1),#+max(Metadata_sub$idx1)),
+            idx_actv = c(Metadata_sub$idx1,Metadata_sub$idx1),
+            tcont = c(Metadata_sub$Group,rep(NA, n)),#,
+            #x = factor(Metadata_sub[,Sample_id]),
+            tactv = c(rep(NA, n),Metadata_sub$Group)
+          )
+        }else{
+          data <- data.frame(
+            idx = c(Metadata_sub$idx1,Metadata_sub$idx1),#+max(Metadata_sub$idx1)),
+            idx_actv = c(Metadata_sub$idx1,Metadata_sub$idx1),
+            tcont = c(Metadata_sub$Group,Metadata_sub$Group),#,
+            #x = factor(Metadata_sub[,Sample_id]),
+            tactv = c(rep(NA, n),Metadata_sub$Group)
+          )
+        }
+       
         data$tcont = as.factor(data$tcont)
         data$tactv = as.factor(data$tactv)
         
@@ -131,13 +143,13 @@ SpatialDENet <- function(all_data,
         #Q_inv <- MASS::ginv(as.matrix(Q_sparse))
         #avg_var <- mean(diag(Q_inv))
         #Q_sparse <- Q_sparse / avg_var
-        
+        if(separate){
         
         aux_result <- try({
           
           res2 <- suppressWarnings(
             inla(
-              y ~ 1+tcont +tactv+ f(idx, model = "generic0", Cmatrix = bdiag(Q_sparse),
+              y ~ 1+tcont +tactv+  f(idx, model = "generic0", Cmatrix = bdiag(Q_sparse),
                                     extraconstr = list(A = A_constr, e = e_constr)),
               data = data,
               family = c(countmodel , "binomial"),
@@ -148,7 +160,29 @@ SpatialDENet <- function(all_data,
             )
           )
           
-        }, silent = TRUE) 
+        }, silent = TRUE)
+        
+        }else{
+        
+          aux_result <- try({
+            
+            res2 <- suppressWarnings(
+              inla(
+                y ~ 1+tcont +  f(idx, model = "generic0", Cmatrix = bdiag(Q_sparse),
+                                 extraconstr = list(A = A_constr, e = e_constr)),
+                data = data,
+                family = c(countmodel , "binomial"),
+                control.predictor = list(compute = TRUE,link = 1,link = 1),verbose = F,
+                silent = TRUE,
+                control.inla = list(control.vb = list(emergency = 500)),
+                control.compute = list(dic = TRUE, waic = TRUE)
+              )
+            )
+            
+          }, silent = TRUE)
+      }
+        
+        
         
       }else{
         
@@ -231,7 +265,7 @@ SpatialDENet <- function(all_data,
       
       
       sig_cont[j] = !(res2$summary.fixed["tcont",3]<= 0 & res2$summary.fixed["tcont",5]>=0)
-      sig_tactv[j] = !(res2$summary.fixed["tactv",3]<= 0 & res2$summary.fixed["tactv",5]>=0)
+       sig_tactv[j] = !(res2$summary.fixed["tactv",3]<= 0 & res2$summary.fixed["tactv",5]>=0)
       
       beta_mean = res2$summary.fixed["tcont","mean"]
       beta_sd = res2$summary.fixed["tcont","sd"]
@@ -261,7 +295,7 @@ SpatialDENet <- function(all_data,
     adj_pvalue[1,] = p.adjust(pvalue[1,], method="BY")%>%round(digits = 3)
     adj_pvalue[2,] = p.adjust(pvalue[2,], method="BY")%>%round(digits = 3)
     adj_pvalue[3,] = p.adjust(pvalue[3,], method="BY")%>%round(digits = 3)
-    
+    rownames(adj_pvalue) = c("count/activ","activ","Cauchy-combined")
     return(list(sig_cont=sig_cont,
                 sig_tactv = sig_tactv,
                 treeEffect_cont=treeEffect_cont,
@@ -514,12 +548,19 @@ SpatialDENet <- function(all_data,
     
     ncores <- max(1, detectCores()-1)
     cl <- makeCluster(ncores)
-    clusterExport(cl, c("counts","coords","s_j","X_full","X_null","ZS","Q_sparse",
-                        "fit_nb_glm_spatial_R","nb_loglik","estimate_alpha_mom","Alph","RobustTauPhi","sigma2_prior","sampleid","RobustTauPhi_Matern","cond"))
+   # clusterExport(cl, c("all_data","coords","s_j","X_full","X_null","ZS","Q_sparse",
+   #                     "fit_nb_glm_spatial_R","nb_loglik","estimate_alpha_mom","Alph","RobustTauPhi","sigma2_prior","sampleid","RobustTauPhi_Matern","cond"))
+   # clusterEvalQ(cl, c(library(MASS),library(tidyverse),library(Matrix),library(sf),library(gstat))) # if used inside
+    
+    clusterExport(cl, 
+                  varlist = c("counts", "coords", "s_j", "X_full", "X_null", "ZS", 
+                              "Q_sparse", "fit_nb_glm_spatial_R", "nb_loglik", 
+                              "estimate_alpha_mom", "Alph", "RobustTauPhi", 
+                              "sigma2_prior", "sampleid", "RobustTauPhi_Matern", "cond"),
+                  envir = environment())
     clusterEvalQ(cl, c(library(MASS),library(tidyverse),library(Matrix),library(sf),library(gstat))) # if used inside
     
     test_gene <- function(i) {
-      
       X_full  <- model.matrix(~ cond)         # includes intercept + condition
       X_null  <- X_full[,1,drop=F]            # intercept-only model
       
@@ -550,7 +591,7 @@ SpatialDENet <- function(all_data,
       ta   = ifelse(sum(tau2==0.01)>0, paste(which(tau2==0.01),collapse ="/"),0)
       
       fit_null <- fit_nb_glm_spatial_R(K = K, X = X_null, s = s_j, alpha = alpha,
-                                       sigma2 = sigma2, coords = coords,Q_sparse=Q_sparse,spatialCov=spatialCov,
+                                       sigma2 = sigma2, coords = coords,Q_sparse=Q_sparse,ZS=ZS,
                                        tau2 = tau2, phi = phi, sampleid = sampleid,spatial = T,
                                        intercept_unpenalized = TRUE,constr =F,
                                        maxit = 100, tol = 1e-6, verbose = FALSE)
@@ -563,7 +604,7 @@ SpatialDENet <- function(all_data,
       
       
       fit_full <- fit_nb_glm_spatial_R(K = K, X = X_full, s = s_j, alpha = alpha,
-                                       sigma2 = sigma2, coords = coords,Q_sparse=Q_sparse,spatialCov=spatialCov,
+                                       sigma2 = sigma2, coords = coords,Q_sparse=Q_sparse,ZS=ZS,
                                        tau2 = tau2, phi = phi, sampleid = sampleid,spatial = T,
                                        intercept_unpenalized = TRUE,constr =F,
                                        maxit =100, tol = 1e-6, verbose = F)
