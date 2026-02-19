@@ -14,6 +14,16 @@ library(genie)
 library(ggraph)
 library(progress)
 library(viridis)
+
+library(parallel)
+library(parallelly)
+library(progress)
+library(progressr)
+library(sp)
+library(sf)
+library(MASS)
+library(gstat)
+
 ```
 ## Find differential and activated genes
 
