@@ -85,7 +85,8 @@ SpatialDENet <- function(all_data,
     
     pvalue = sig_cont = sig_tactv = SNR= rep(0, n_genes)
     names(pvalue) = names(sig_cont) = names(sig_tactv) = names(SNR) = rownames(all_data)
-    pvalue = SNR = matrix(NA,2,n_genes)
+     SNR = matrix(NA,2,n_genes)
+    pvalue =  matrix(NA,3,n_genes)
     colnames(pvalue) =colnames(SNR)  = rownames(all_data)
     treeEffect_actv = treeEffect_cont = matrix(NA, nrow =vcount(mst),ncol = n_genes)
     colnames(treeEffect_actv) = colnames(treeEffect_cont) = rownames(all_data)
@@ -247,8 +248,9 @@ SpatialDENet <- function(all_data,
       
       pval = c(pvalue1,pvalue2)
       
-      pvalue[1,j] = cauchy_combine(pval[!is.na(pval)])
-      pvalue[2,j] = cauchy_combine(pval[!is.na(pval)])
+      pvalue[1,j] = pvalue1
+      pvalue[2,j] = pvalue2
+      pvalue[3,j] = cauchy_combine(pval[!is.na(pval)])
       
       treeEffect_cont[,j] = res2$summary.random$idx$mean[1:vcount(mst)]
       treeEffect_actv[,j] = res2$summary.random$idx$mean[1:vcount(mst)+max(1:vcount(mst))]
@@ -258,6 +260,7 @@ SpatialDENet <- function(all_data,
     adj_pvalue = pvalue
     adj_pvalue[1,] = p.adjust(pvalue[1,], method="BY")%>%round(digits = 3)
     adj_pvalue[2,] = p.adjust(pvalue[2,], method="BY")%>%round(digits = 3)
+    adj_pvalue[3,] = p.adjust(pvalue[3,], method="BY")%>%round(digits = 3)
     
     return(list(sig_cont=sig_cont,
                 sig_tactv = sig_tactv,
