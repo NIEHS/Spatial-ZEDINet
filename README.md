@@ -39,10 +39,11 @@ source("https://raw.githubusercontent.com/NIEHS/Spatial-ZEDINet/main/UtililityFu
 # Find differential and activated Genes
 
 AuxResult =  SpatialDENet(all_data = SeuratObj@assays$RNA$data,
-                          metadata = SeuratObj@meta.data, # Must contain "Group" column
+                          metadata = SeuratObj@meta.data, # Must contain "Group" column 
                           Sample_id = "Sample_id",
-                          joint = TRUE,
-                          countmodel = "lognormal", # nbinomial for count,
+                          joint = T,
+                          interface = "INLA", # or IWLS
+                          countmodel = "nbinomial", # or binomial for activation
                           CollectPostD = TRUE)
 AuxResult$adj_pvalue_BY
 ```
