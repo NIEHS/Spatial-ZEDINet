@@ -34,7 +34,7 @@ SeuratObj = readRDS("SampleData.rds")
 
 # Get utility function
 
-source("https://raw.githubusercontent.com/NIEHS/Spatial-ZEDINet/main/SpatialZEDNet_Git.R")
+source("https://raw.githubusercontent.com/NIEHS/Spatial-ZEDINet/main/UtililityFunctionsSpatialZEDNet.R")
 
 # Find differential and activated Genes
 
